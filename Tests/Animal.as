@@ -1,0 +1,1 @@
+package {	public const INTY:Number = 34;	public class Animal {		public function Animal() {					}	}		public class Dog extends Animal {		public function Dog() {				}				public function run() {				}				public function sit() {				}	}}
