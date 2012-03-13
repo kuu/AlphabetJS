@@ -6,10 +6,22 @@ function VM() {
 		uint: [0],
 		double: [0.0],
 		str: [''],
-		namespace: [''],
-		ns_set: [''],
-		multiname: ['']
+		namespace: [null],
+		ns_set: [null],
+		multiname: [null]
 	};
+	
+	this.methods = [];
+	
+	this.metadata = [];
+	
+	this.instances = [];
+	
+	this.classes = []; 
+	
+	this.scripts = [];
+	
+	this.methodBodies = [];
 }
 
 var AJS = window.AlphabetJS;

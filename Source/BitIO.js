@@ -37,37 +37,18 @@ var BitIO = function() {
 		this.byte_offset = bo + n;
 		return ret;
 	}
-	this.getDataUntil = function(delim) {
-		this.byteAlign();
-		var bo = this.byte_offset;
-		var delim_offset;
-		var n;
-		if ((delim === null) || (delim === false)) {
-			delim_offset = -1;
-		} else {
-			delim_offset = this.data.indexOf(delim, bo);
-		}
-		if (delim_offset === -1) {
-			n = this.data.length - bo;
-		} else {
-			n = delim_offset - bo;
-		}
-		var ret = this.data.substr(bo, n);
-		this.byte_offset = bo + n;
-		if ((delim_offset !== -1) && (delim.length > 0)) {
-			this.byte_offset += delim.length;
-		}
-		return ret;
-	}
+	
 	this.getUI8 = function() {
 		this.byteAlign();
 		return this.data.charCodeAt(this.byte_offset++) & 0xff;
 	}
+	
 	this.getUI16LE = function() {
 		this.byteAlign();
 		return (this.data.charCodeAt(this.byte_offset++) & 0xff | (this.data
 				.charCodeAt(this.byte_offset++) & 0xff) << 8);
 	}
+	
 	this.getUI32LE = function() {
 		this.byteAlign();
 		return (this.data.charCodeAt(this.byte_offset++) & 0xff | (this.data
@@ -75,6 +56,7 @@ var BitIO = function() {
 				.charCodeAt(this.byte_offset++) & 0xff | (this.data
 				.charCodeAt(this.byte_offset++) & 0xff) << 8) << 8) << 8);
 	}
+	
 	this.getUI16BE = function() {
 		this.byteAlign();
 		return (((this.data.charCodeAt(this.byte_offset++) & 0xff) << 8) | (this.data
@@ -85,6 +67,7 @@ var BitIO = function() {
 		this.byteCarry();
 		return (this.data.charCodeAt(this.byte_offset) >> (7 - this.bit_offset++)) & 0x1;
 	}
+	
 	this.getUIBitsBE = function(n) {
 		var value = 0;
 		while (n--) {
@@ -93,6 +76,7 @@ var BitIO = function() {
 		}
 		return value;
 	}
+	
 	this.getSIBitsBE = function(n) {
 		var value = this.getUIBitsBE(n);
 		var msb = value & (0x1 << (n - 1));
@@ -102,12 +86,15 @@ var BitIO = function() {
 		}
 		return value;
 	}
+	
 	this.getUIBitsLE = function(n) {
-		var value = 0;		for (var i = 0; i < n; i++) {
+		var value = 0;
+		for ( var i = 0; i < n; i++) {
 			value |= (this.getUIBit() << i);
 		}
 		return value;
 	}
+	
 	this.getSIBitsLE = function(n) {
 		var value = this.getUIBitsLE(n);
 		var msb = value & (0x1 << (n - 1));
@@ -116,36 +103,49 @@ var BitIO = function() {
 			return -(value ^ bitmask) - 1;
 		}
 		return value;
-	}	this.getVUI30 = function() {		this.byteAlign();
-		var tValue = 0,
-			tByte;
-		for (var i = 0; i < 6; i++) {
+	}
+	
+	this.getString = function() {
+		var tLength = this.getVUI30(),
+			tReturn = this.data.substr(this.byte_offset, tLength);
+		this.byte_offset += tLength;
+		return tReturn;
+	}
+	
+	this.getVUI30 = function() {
+		this.byteAlign();
+		var tValue = 0, tByte;
+		for ( var i = 0; i < 6; i++) {
 			tByte = this.data.charCodeAt(this.byte_offset++) & 0xff;
 			tValue |= (tByte & 0x7f) << i;
-			if (!(tByte >>> 7)) return tValue;
+			if (!(tByte >>> 7))
+				return tValue;
 		}
 		return tValue;
 	}
+	
 	this.getVUI32 = function() {
 		this.byteAlign();
-		var tValue = 0,
-			tByte;
-		for (var i = 0; i < 6; i++) {
+		var tValue = 0, tByte;
+		for ( var i = 0; i < 6; i++) {
 			tByte = this.data.charCodeAt(this.byte_offset++) & 0xff;
 			tValue |= (tByte & 0x7f) << i;
-			if (!(tByte >>> 7)) return tValue;
+			if (!(tByte >>> 7))
+				return tValue;
 		}
 		return tValue;
 	}
+	
 	this.getVSI32 = function() {
 		this.byteAlign();
-		var tValue = 0,
-			tByte;
-		for (var i = 0; i < 6; i++) {
+		var tValue = 0, tByte;
+		for ( var i = 0; i < 6; i++) {
 			tByte = this.data.charCodeAt(this.byte_offset++) & 0xff;
 			tValue |= (tByte & 0x7f) << i;
-			if (!(tByte >>> 7)) return tValue;
-		}		var msb = tValue & (0x1 << 31);
+			if (!(tByte >>> 7))
+				return tValue;
+		}
+		var msb = tValue & (0x1 << 31);
 		if (msb) {
 			var bitmask = (2 * msb) - 1;
 			return -(tValue ^ bitmask) - 1;
@@ -154,26 +154,66 @@ var BitIO = function() {
 	}
 
 	this.getDouble = function() {
-        var isNeg = (this.data.charCodeAt(this.byte_offset + 3) & 0x80) >>> 7,
-            exp = (((this.data.charCodeAt(this.byte_offset + 3) & 0x7F) << 1) + ((this.data.charCodeAt(this.byte_offset + 2) & 0x80) >>> 7)) - 127,
-            mantissa = ((this.data.charCodeAt(this.byte_offset + 2) & 0x7F) * 65536) + ((this.data.charCodeAt(this.byte_offset + 1) & 0xFF) * 256) + (this.data.charCodeAt(this.byte_offset) & 0xFF);
-        this.byte_offset += 4;
-        if (exp === -127) {
-            if (mantissa === 0) {
-                return 0;
-            }
-            return (isNeg ? -1 : 1) * Math.pow(2, exp - 22) * mantissa;
-        } else if (exp === (255 - 127)) {
-            if (mantissa) {
-                return Number.NaN;
-            }
-            if (isNeg) {
-                return Number.NEGATIVE_INFINITY;
-            }
-            return Number.POSITIVE_INFINITY;
-        }
-        return (isNeg ? -1 : 1) * Math.pow(2, exp - 23) * (0x800000 + mantissa);
-    }
+		this.byteAlign();
+		var e,
+			m,
+			bBE = false,
+			mLen = 52,
+			nBytes = 8,
+			eLen = nBytes * 8 - mLen - 1,
+			eMax = (1 << eLen) - 1,
+			eBias = eMax >> 1,
+			nBits = -7,
+			i = bBE ? 0 : (nBytes - 1),
+			d = bBE ? 1 : -1,
+			s = this.data.charCodeAt(this.byte_offset + 7);
+
+		i += d;
+
+		e = s & ((1 << (-nBits)) - 1);
+		s >>= (-nBits);
+		nBits += eLen;
+		for (; nBits > 0; e = e * 256 + this.data.charCodeAt(this.byte_offset + i), i += d, nBits -= 8)
+			;
+
+		m = e & ((1 << (-nBits)) - 1);
+		e >>= (-nBits);
+		nBits += mLen;
+		for (; nBits > 0; m = m * 256 + this.data.charCodeAt(this.byte_offset + i), i += d, nBits -= 8)
+			;
+
+		this.byte_offset += nBytes;
+		
+		if (e === 0) {
+			e = 1 - eBias;
+		} else if (e === eMax) {
+			return m ? NaN : ((s ? -1 : 1) * Infinity);
+		} else {
+			m = m + Math.pow(2, mLen);
+			e = e - eBias;
+		}
+		return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
+	}
+
+	this.getArray = function(pFunction, pLength) {
+		var tReturn = new Array(pLength);
+		for (var i = 0; i < pLength; i++) {
+			tReturn[i] = pFunction.call(this);
+		}
+		return tReturn;
+	}
+	
+	this.getArrays = function(pFunctions, pLength) {
+		var tReturn = new Array(pLength),
+			tFunctionsLength = pFunctions.length;
+		for (var i = 0; i < pLength; i++) {
+			tReturn[i] = new Array(tFunctionsLength);
+			for (var j = 0; j < tFunctionsLength; j++) {
+				tReturn[i][j] = pFunctions[j].call(this);
+			}
+		}
+		return tReturn;
+	}
 	
 	/*
 	 * seek
