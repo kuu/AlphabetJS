@@ -40,15 +40,17 @@ var BitIO = function() {
 	this.getDataUntil = function(delim) {
 		this.byteAlign();
 		var bo = this.byte_offset;
+		var delim_offset;
+		var n;
 		if ((delim === null) || (delim === false)) {
-			var delim_offset = -1;
+			delim_offset = -1;
 		} else {
-			var delim_offset = this.data.indexOf(delim, bo);
+			delim_offset = this.data.indexOf(delim, bo);
 		}
 		if (delim_offset === -1) {
-			var n = this.data.length - bo;
+			n = this.data.length - bo;
 		} else {
-			var n = delim_offset - bo;
+			n = delim_offset - bo;
 		}
 		var ret = this.data.substr(bo, n);
 		this.byte_offset = bo + n;
@@ -119,8 +121,8 @@ var BitIO = function() {
 			tByte;
 		for (var i = 0; i < 6; i++) {
 			tByte = this.data.charCodeAt(this.byte_offset++) & 0xff;
-			tValue |= (tByte & 0xfe) << i;
-			if (!(tByte & 0x1)) return tValue;
+			tValue |= (tByte & 0x7f) << i;
+			if (!(tByte >>> 7)) return tValue;
 		}
 		return tValue;
 	}
@@ -130,8 +132,8 @@ var BitIO = function() {
 			tByte;
 		for (var i = 0; i < 6; i++) {
 			tByte = this.data.charCodeAt(this.byte_offset++) & 0xff;
-			tValue |= (tByte & 0xfe) << i;
-			if (!(tByte & 0x1)) return tValue;
+			tValue |= (tByte & 0x7f) << i;
+			if (!(tByte >>> 7)) return tValue;
 		}
 		return tValue;
 	}
@@ -141,8 +143,8 @@ var BitIO = function() {
 			tByte;
 		for (var i = 0; i < 6; i++) {
 			tByte = this.data.charCodeAt(this.byte_offset++) & 0xff;
-			tValue |= (tByte & 0xfe) << i;
-			if (!(tByte & 0x1)) return tValue;
+			tValue |= (tByte & 0x7f) << i;
+			if (!(tByte >>> 7)) return tValue;
 		}		var msb = tValue & (0x1 << 31);
 		if (msb) {
 			var bitmask = (2 * msb) - 1;
@@ -151,30 +153,28 @@ var BitIO = function() {
 		return tValue;
 	}
 
-	/*
-	 * convert to
-	 */
-	this.toUI16LE = function(data) {
-		return (data.charCodeAt(0) & 0xff) + ((data.charCodeAt(1) & 0xff) << 8);
-	}
-	this.toSI16LE = function(data) {
-		var value = this.toUI16LE(data);
-		if (value < 0x8000) {
-			return value;
-		}
-		return value - 0x10000;
-	}
-
-	/*
-	 * convert from
-	 */
-	this.fromUI32BE = function(value) {
-		return String.fromCharCode(value >> 24)
-				+ String.fromCharCode((value >> 16) & 0xff)
-				+ String.fromCharCode((value >> 8) & 0xff)
-				+ String.fromCharCode(value & 0xff);
-	}
-
+	this.getDouble = function() {
+        var isNeg = (this.data.charCodeAt(this.byte_offset + 3) & 0x80) >>> 7,
+            exp = (((this.data.charCodeAt(this.byte_offset + 3) & 0x7F) << 1) + ((this.data.charCodeAt(this.byte_offset + 2) & 0x80) >>> 7)) - 127,
+            mantissa = ((this.data.charCodeAt(this.byte_offset + 2) & 0x7F) * 65536) + ((this.data.charCodeAt(this.byte_offset + 1) & 0xFF) * 256) + (this.data.charCodeAt(this.byte_offset) & 0xFF);
+        this.byte_offset += 4;
+        if (exp === -127) {
+            if (mantissa === 0) {
+                return 0;
+            }
+            return (isNeg ? -1 : 1) * Math.pow(2, exp - 22) * mantissa;
+        } else if (exp === (255 - 127)) {
+            if (mantissa) {
+                return Number.NaN;
+            }
+            if (isNeg) {
+                return Number.NEGATIVE_INFINITY;
+            }
+            return Number.POSITIVE_INFINITY;
+        }
+        return (isNeg ? -1 : 1) * Math.pow(2, exp - 23) * (0x800000 + mantissa);
+    }
+	
 	/*
 	 * seek
 	 */

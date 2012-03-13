@@ -4,7 +4,7 @@ function VM() {
 	this.constants = {
 		int: [0],
 		uint: [0],
-		double: [0.],
+		double: [0.0],
 		str: [''],
 		namespace: [''],
 		ns_set: [''],

@@ -16,6 +16,12 @@ function Parser(pVM, pABC) {
 	buffer.length = tCount;	for (var i = 1; i < tCount; i++) {
 		buffer[i] = mIO.getVUI32();
 	}
+	
+	// Parse double constants.
+	tCount = mIO.getVUI30();	buffer = pVM.constants.double;
+	buffer.length = tCount;	for (var i = 1; i < tCount; i++) {
+		buffer[i] = mIO.getDouble();
+	}
 }
 
 var AJS = window.AlphabetJS;
