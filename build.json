@@ -1,0 +1,113 @@
+{
+  "defaultTarget": "all",
+  "properties": {
+    "sourceDir": "src",
+    "buildDir": "build",
+    "binDir": "bin",
+    "vendorDir": "vendor"
+  },
+  "resources": {
+    "Breader": {
+      "type": "package",
+      "location": "git",
+      "url": "git://github.com/Moncader/Breader.git",
+      "branch": "master"
+    }
+  },
+  "targets": {
+    "all": {
+      "depends": [
+        "core",
+        "AS1Decompiler",
+        "ABC"
+      ]
+    },
+
+    "core": {
+      "builder": "closure-compiler",
+      "resources": [
+        {
+          "type": "files",
+          "root": "${sourceDir}",
+          "files": [
+            "core.js",
+            "Program.js",
+            "Loader.js"
+          ]
+        },
+        {
+          "type": "files",
+          "root": "${sourceDir}/AST",
+          "include": "\\.js$"
+        }
+      ]
+    },
+
+    "AS1Decompiler": {
+      "builder": "closure-compiler",
+      "resources": [
+        {
+          "type": "files",
+          "root": "${sourceDir}/ActionScript12/Decompiler",
+          "files": [
+            "AS1Program.js",
+            "AS1Handlers.js",
+            "Loader.js"
+          ]
+        }
+      ]
+    },
+
+    "AS2Decompiler": {
+      "builder": "closure-compiler",
+      "resources": [
+        {
+          "type": "targets",
+          "targets": [
+            "AS1Decompiler"
+          ]
+        },
+        {
+          "type": "files",
+          "root": "${sourceDir}/ActionScript12/Decompiler",
+          "files": [
+            "AS2Program.js",
+            "AS2Handlers.js"
+          ]
+        }
+      ]
+    },
+
+    "ABC": {
+      "builder": "closure-compiler",
+      "resources": [
+        {
+          "type": "files",
+          "root": "${sourceDir}/ABC",
+          "files": [
+            "breader-ext.js",
+            "ABCProgram.js",
+            "Loader.js"
+          ]
+        }
+      ]
+    },
+
+    ".+": {
+      "builder": "closure-compiler",
+      "outputs": "${binDir}/alphabet.js",
+      "resources": [
+        {
+          "type": "reference",
+          "name": "Breader"
+        },
+
+        {
+          "type": "output",
+          "include": "\\.js$",
+          "exclude": "breader\\.js$"
+        }
+      ]
+    }
+  }
+}

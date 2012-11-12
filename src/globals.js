@@ -1,3 +1,0 @@
-
-this['AlphabetJS'] = new Object();
-
