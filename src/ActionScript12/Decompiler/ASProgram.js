@@ -27,9 +27,6 @@
 
   AlphabetJS.programs.AS1Decompiler = ASProgram;
   AlphabetJS.programs.AS2Decompiler = ASProgram;
-  AlphabetJS.programs.AS1VM = ASProgram;
-  AlphabetJS.programs.AS2VM = ASProgram;
-
 
   ASProgram.prototype.run = function(pId, pTarget) {
     var tActions = this.loadedData[pId];

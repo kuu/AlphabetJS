@@ -53,28 +53,10 @@
       ]
     },
 
-    "ASCore": {
-      "builder": "closure-compiler",
-      "module": true,
-      "depends": [
-        "core"
-      ],
-      "resources": [
-        {
-          "type": "files",
-          "root": "${sourceDir}/ActionScript12",
-          "files": [
-            "ASProgram.js"
-          ]
-        }
-      ]
-    },
-
     "AS1Decompiler": {
       "builder": "closure-compiler",
       "module": true,
       "depends": [
-        "ASCore",
         "AST"
       ],
       "resources": [
@@ -82,6 +64,7 @@
           "type": "files",
           "root": "${sourceDir}/ActionScript12/Decompiler",
           "files": [
+            "ASProgram.js",
             "Loader.js",
             "AS1Handlers.js"
           ]
@@ -99,6 +82,42 @@
         {
           "type": "files",
           "root": "${sourceDir}/ActionScript12/Decompiler",
+          "files": [
+            "AS2Handlers.js"
+          ]
+        }
+      ]
+    },
+
+    "AS1VM": {
+      "builder": "closure-compiler",
+      "module": true,
+      "depends": [
+        "core"
+      ],
+      "resources": [
+        {
+          "type": "files",
+          "root": "${sourceDir}/ActionScript12/Interpreter",
+          "files": [
+            "ASProgram.js",
+            "Loader.js",
+            "AS1Handlers.js"
+          ]
+        }
+      ]
+    },
+
+    "AS2VM": {
+      "builder": "closure-compiler",
+      "module": true,
+      "depends": [
+        "AS1VM"
+      ],
+      "resources": [
+        {
+          "type": "files",
+          "root": "${sourceDir}/ActionScript12/Interpreter",
           "files": [
             "AS2Handlers.js"
           ]
