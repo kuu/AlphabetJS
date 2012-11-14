@@ -303,68 +303,28 @@
   };
 
   ASTFactory.prototype.createMapped = function(pName, pArguments) {
-    var tOrig = this.functionMap[pName];
-
-    if (tOrig === void 0) {
-      return {
-        type: 'comment',
-        value: 'Unknown function in function map: ' + pName
-      };
-    }
-
-    var tNew = {};
-
-    function recurseObject(pOrig, pNew) {
-      for (var k in pOrig) {
-        if (pOrig[k].__proto__ === Array.prototype) {
-          pNew[k] = new Array(pOrig[k].length);
-          recurseArray(pOrig[k], pNew[k]);
-        } else if (typeof pOrig[k] === 'object') {
-          pNew[k] = {};
-          recurseObject(pOrig[k], pNew[k]);
-        } else {
-          pNew[k] = pOrig[k];
+    return {
+      type: 'call',
+      value: {
+        type: 'property',
+        left: {
+          type: 'literal',
+          what: 'this'
+        },
+        right: {
+          type: 'literal',
+          what: 'string',
+          value: 'callMapped'
         }
-      }
-    }
-
-    function recurseArray(pOrig, pNew) {
-      for (var i = 0, il = pOrig.length; i < il; i++) {
-        if (pOrig[i].__proto__ === Array.prototype) {
-          pNew[i] = new Array(pOrig[i].length);
-          recurseArray(pOrig[i], pNew[i]);
-        } else if (typeof pOrig[i] === 'object') {
-          pNew[i] = {};
-          recurseObject(pOrig[i], pNew[i]);
-        } else {
-          pNew[i] = pOrig[i];
-        }
-      }
-    }
-
-    recurseObject(tOrig, tNew);
-
-    if (tNew.type === 'call') {
-      if (!pArguments) {
-        pArguments = {};
-      }
-
-      pArguments.currentTarget = {
-        type: 'literal',
-        what: 'reference',
-        value: 'tTarget'
-      };
-
-      tNew.args = [
+      },
+      args: [
         {
           type: 'literal',
-          what: 'object',
-          value: pArguments
+          what: 'string',
+          value: pName
         }
-      ];
-    }
-
-    return tNew;
+      ].concat(pArguments || [])
+    };
   };
 
   ASTFactory.prototype.enter = function(pAST) {
@@ -389,8 +349,11 @@
     return tCode.join('\n');
   };
 
-  ASTFactory.prototype.getFunction = function() {
-    return new Function(this.createJavaScript(this.ast.body));
+  ASTFactory.prototype.getFunction = function(pArgs) {
+    if (!pArgs) {
+      pArgs = [];
+    }
+    return new Function(pArgs.join(','), this.createJavaScript(this.ast.body));
   };
 
   function indent(pDepth) {

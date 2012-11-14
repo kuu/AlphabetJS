@@ -8,7 +8,7 @@
  (function(global) {
 
   var AlphabetJS = global.AlphabetJS;
-  var mHandlers = AlphabetJS.loaders.AS1.handlers;
+  var mHandlers = AlphabetJS.loaders.AS1Decompiler.handlers;
 
   // End
   mHandlers[0x00] = function(pReader, pFactory, pState) {
@@ -18,7 +18,7 @@
     var i = 0, il;
     var tTempInt = 0;
 
-    pState.currentAST = pState.astPointer[pState.astPointer.length - 1];
+    var tCurrentAST = pState.currentAST = pFactory.astPointer[pFactory.astPointer.length - 1];
 
     for (il = tTempStackByteOffsets.length; i < il; i++) {
       tTempInt = tTempStackByteOffsets[i];
@@ -39,38 +39,32 @@
 
   // NextFrame
   mHandlers[0x04] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('nextFrame');
+    pState.currentAST = pFactory.createMapped('NextFrame');
   };
 
   // PreviousFrame
   mHandlers[0x05] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('previousFrame');
+    pState.currentAST = pFactory.createMapped('PreviousFrame');
   };
 
   // Play
   mHandlers[0x06] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('play');
+    pState.currentAST = pFactory.createMapped('Play');
   };
 
   // Stop
   mHandlers[0x07] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('stop');
+    pState.currentAST = pFactory.createMapped('Stop');
   };
 
   // ToggleQuality
   mHandlers[0x08] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented ToggleQuality here!'
-    };
+    pState.currentAST = pFactory.createMapped('ToggleQuality');
   };
 
   // StopSounds
   mHandlers[0x09] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented StopSounds here!'
-    };
+    pState.currentAST = pFactory.createMapped('StopSounds');
   };
 
   // Add
@@ -237,9 +231,9 @@
     var tTempStack = pState.tempStack;
     var tTempStackIndex = pState.tempStackIndex;
 
-    tTempStack[tTempStackIndex] = pFactory.createMapped('getVariable', {
-      name: tTempStack[tTempStackIndex]
-    });
+    tTempStack[tTempStackIndex] = pFactory.createMapped('GetVariable', [
+      tTempStack[tTempStackIndex] //name
+    ]);
   };
 
   // SetVariable
@@ -247,10 +241,13 @@
     var tTempStack = pState.tempStack;
     var tTempStackIndex = pState.tempStackIndex;
 
-    pState.currentAST = pFactory.createMapped('setVariable', {
-      value: tTempStack[tTempStackIndex--],
-      name: tTempStack[tTempStackIndex--]
-    });
+    var tValue = tTempStack[tTempStackIndex--];
+    var tName = tTempStack[tTempStackIndex--];
+
+    pState.currentAST = pFactory.createMapped('SetVariable', [
+      tName,
+      tValue
+    ]);
 
     pState.tempStackIndex = tTempStackIndex;
   };
@@ -274,10 +271,13 @@
     var tTempStack = pState.tempStack;
     var tTempStackIndex = pState.tempStackIndex;
 
-    tTempStack[tTempStackInde - 1] = pFactory.createMapped('getProperty', {
-      property: pState.toInt(tTempStack[tTempStackIndex--]),
-      name: pState.toString(tTempStack[tTempStackIndex--])
-    });
+    var tProperty = pState.toInt(tTempStack[tTempStackIndex--]);
+    var tName = pState.toString(tTempStack[tTempStackIndex--]);
+
+    tTempStack[tTempStackIndex - 1] = pFactory.createMapped('GetProperty', [
+      tName,
+      tProperty
+    ]);
 
     pState.tempStackIndex = tTempStackIndex;
   };
@@ -287,11 +287,15 @@
     var tTempStack = pState.tempStack;
     var tTempStackIndex = pState.tempStackIndex;
 
-    pState.currentAST = pFactory.createMapped('setProperty', {
-      value: tTempStack[tTempStackIndex--],
-      property: pState.toInt(tTempStack[tTempStackIndex--]),
-      name: pState.toString(tTempStack[tTempStackIndex])
-    });
+    var tValue = tTempStack[tTempStackIndex--];
+    var tProperty = pState.toInt(tTempStack[tTempStackIndex--]);
+    var tName = pState.toString(tTempStack[tTempStackIndex]);
+
+    pState.currentAST = pFactory.createMapped('SetProperty', [
+      tName,
+      tProperty,
+      tValue
+    ]);
 
     pState.tempStackIndex = tTempStackIndex;
   };
@@ -301,51 +305,41 @@
     var tTempStack = pState.tempStack;
     var tTempStackIndex = pState.tempStackIndex;
 
-    pState.currentAST = pFactory.createMapped('cloneSprite', {
-      depth: pState.toInt(tTempStack[tTempStackIndex--]),
-      target: pState.toString(tTempStack[tTempStackIndex--]),
-      name: pState.toString(tTempStack[tTempStackIndex--])
-    });
+    var tDepth = pState.toInt(tTempStack[tTempStackIndex--]);
+    var tTarget = pState.toString(tTempStack[tTempStackIndex--]);
+    var tName = pState.toString(tTempStack[tTempStackIndex--]);
+
+    pState.currentAST = pFactory.createMapped('CloneSprite', [
+      tTarget,
+      tDepth,
+      tName
+    ]);
 
     pState.tempStackIndex = tTempStackIndex;
   };
 
   // RemoveSprite
   mHandlers[0x25] = function(pReader, pFactory, pState) {
-    var tTempStack = pState.tempStack;
-    var tTempStackIndex = pState.tempStackIndex;
-
-    pState.currentAST = pFactory.createMapped('removeSprite', {
-      name: pState.toString(tTempStack[tTempStackIndex--])
-    });
-
-    pState.tempStackIndex = tTempStackIndex;
+    pState.currentAST = pFactory.createMapped('RemoveSprite', [
+      pState.toString(pState.tempStack[pState.tempStackIndex--]) //name
+    ]);
   };
 
   // Trace
   mHandlers[0x26] = function(pReader, pFactory, pState) {
-    var tTempStack = pState.tempStack;
-    var tTempStackIndex = pState.tempStackIndex;
-
-    pState.currentAST = pFactory.createMapped('trace', {
-      message: tTempStack[pState.tempStackIndex--]
-    });
+    pState.currentAST = pFactory.createMapped('Trace', [
+      pState.tempStack[pState.tempStackIndex--]
+    ]);
   };
 
   // StartDrag
   mHandlers[0x27] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented StartDrag here!'
-    };
+    pState.currentAST = pFactory.createMapped('StartDrag');
   };
 
   // EndDrag
   mHandlers[0x28] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented EndDrag here!'
-    };
+    pState.currentAST = pFactory.createMapped('EndDrag');
   };
 
   // StringLess
@@ -376,16 +370,16 @@
 
     var tNumberOfArguments = (parseInt(tTempFactory.getFunction()(), 10) || 1) - 1;
 
-    tTempStack[tTempStackIndex - tNumberOfArguments] = pFactory.createMapped('fscommand2', {
-      name: tTempStack[tTempStackIndex],
-      args: {
+    tTempStack[tTempStackIndex - tNumberOfArguments] = pFactory.createMapped('FSCommand2', [
+      tTempStack[tTempStackIndex], //name
+      { //args
         type: 'literal',
         what: 'array',
         value: tTempStack
           .slice(tTempStackIndex - tNumberOfArguments, tTempStackIndex)
           .reverse()
       }
-    });
+    ]);
 
     tTempStackIndex -= tNumberOfArguments;
 
@@ -496,75 +490,95 @@
 
   // GoToFrame
   mHandlers[0x81] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('gotoFrame', {
-      frame: {
+    pState.currentAST = pFactory.createMapped('GoToFrame', [
+      {
         type: 'literal',
         what: 'number',
         value: pReader.I16()
       }
-    });
+    ]);
   };
 
   // GetURL
   mHandlers[0x83] = function(pReader, pFactory, pState) {
-    pReader.s(); // UrlString: The target URL string
-    pReader.s(); // TargetString: The target string. _level0 and _level1 loads SWF files to special area.
-
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented GetURL here!'
-    };
+    pState.currentAST = pFactory.createMapped('GetURL', [
+      {
+        type: 'literal',
+        what: 'string',
+        value: pReader.s() // UrlString: The target URL string
+      },
+      {
+        type: 'literal',
+        what: 'string',
+        value: pReader.s() // TargetString: The target string. _level0 and _level1 loads SWF files to special area.
+      }
+    ]);
   };
 
   // WaitForFrame
   mHandlers[0x8A] = function(pReader, pFactory, pState) {
-    pReader.I16(); // The number of frames to wait for.
-    pReader.B(); // SkipCount: The number of actions to skip if frame is not loaded.
-
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented WaitForFrame here!'
-    };
+    pState.currentAST = pFactory.createMapped('WaitForFrame', [
+      {
+        type: 'literal',
+        what: 'number',
+        value: pReader.I16() // The number of frames to wait for.
+      },
+      {
+        type: 'literal',
+        what: 'number',
+        value: pReader.B() // SkipCount: The number of actions to skip if frame is not loaded.
+      }
+    ]);
   };
 
   // SetTarget, SetTarget2
   mHandlers[0x8B] = mHandlers[0x20] = function(pReader, pFactory, pState) {
     pState.currentAST = {
-      type: 'assign',
-      left: {
-        type: 'literal',
-        what: 'reference',
-        value: 'tTarget'
-      },
-      right: pFactory.createMapped('setTarget', {
-        target: pState.actionCode === 0x8B ? {
+      type: 'call',
+      value: {
+        type: 'property',
+        left: {
+          type: 'literal',
+          what: 'this'
+        },
+        right: {
           type: 'literal',
           what: 'string',
-          value: pReader.s()
-        } : pState.toString(pState.tempStack[pState.tempStackIndex--])
-      })
+          value: 'setTarget'
+        }
+      },
+      args: [
+        pState.actionCode === 0x8B ?
+          {
+            type: 'literal',
+            what: 'string',
+            value: pReader.s()
+          } :
+          pState.toString(pState.tempStack[pState.tempStackIndex--])
+      ]
     };
   };
 
   // GoToLabel
   mHandlers[0x8C] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('gotoLabel', {
-      frame: {
+    pState.currentAST = pFactory.createMapped('GoToLabel', [
+      {
         type: 'literal',
         what: 'string',
         value: pReader.s()
       }
-    });
+    ]);
   };
 
   // WaitForFrame2
   mHandlers[0x8D] = function(pReader, pFactory, pState) {
-    pReader.B(); // SkipCount: The number of actions to skip if frame is not loaded.
-
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented WaitForFrame2 here!'
-    };
+    pState.currentAST = pFactory.createMapped('WaitForFrame2', [
+      {
+        type: 'literal',
+        what: 'number',
+        value: pReader.B() // SkipCount: The number of actions to skip if frame is not loaded.
+      }
+    ]);
   };
 
   // Push
@@ -623,16 +637,29 @@
 
    // GetURL2
   mHandlers[0x9A] = function(pReader, pFactory, pState) {
-    pReader.bp(2); // SendVarsMethod (0 = none, 1 = GET, 2 = POST)
+    var tSendVarsMethod = pReader.bp(2); // SendVarsMethod (0 = none, 1 = GET, 2 = POST)
     pReader.bp(4); // Reserved
-    pReader.bp(1); // LoadTargetFlag (0 = target is a browser window, 1 = target is a path to sprite)
-    pReader.bp(1); // LoadVariablesFlag (0 = no variables to load, 1 = load variables)
+    var tLoadTargetFlag = pReader.bp(1); // LoadTargetFlag (0 = target is a browser window, 1 = target is a path to sprite)
+    var tLoadVariablesFlag = pReader.bp(1); // LoadVariablesFlag (0 = no variables to load, 1 = load variables)
     pReader.a();
 
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented GetURL2 here!'
-    };
+    pState.currentAST = pFactory.createMapped('GetURL2', [
+      {
+        type: 'literal',
+        what: 'number',
+        value: tSendVarsMethod,
+      },
+      {
+        type: 'literal',
+        what: 'number',
+        value: tLoadTargetFlag,
+      },
+      {
+        type: 'literal',
+        what: 'number',
+        value: tLoadVariablesFlag
+      }
+    ]);
   };
 
   // If
@@ -689,9 +716,9 @@
 
   // Call
   mHandlers[0x9E] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('call', {
-      frame: pState.tempStack[pState.tempStackIndex--]
-    });
+    pState.currentAST = pFactory.createMapped('Call', [
+      pState.tempStack[pState.tempStackIndex--] //name
+    ]);
   };
 
   // GoToFrame2
@@ -700,7 +727,7 @@
 
     var tSceneBias = pReader.bp(1); // SceneBiasFlag
 
-    pReader.bp(1); // Play flag (0 = goto and stop, 1 = goto and play)
+    var tPlayFlag = pReader.bp(1); // Play flag (0 = goto and stop, 1 = goto and play)
 
     pReader.a();
 
@@ -708,14 +735,19 @@
       tSceneBias = pReader.I16(); // SceneBias (Number to be added to frame determined by stack argument)
     }
 
-    pState.currentAST = pFactory.createMapped('gotoFrameOrLabel', {
-      frame: pState.tempStack[pState.tempStackIndex--],
-      bias: {
+    pState.currentAST = pFactory.createMapped('GoToFrame2', [
+      pState.tempStack[pState.tempStackIndex--], //frame or label
+      {
         type: 'literal',
         what: 'number',
         value: tSceneBias
+      },
+      {
+        type: 'literal',
+        what: 'number',
+        value: tPlayFlag
       }
-    });
+    ]);
   };
 
 }(this));

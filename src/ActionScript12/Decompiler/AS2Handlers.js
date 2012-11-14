@@ -8,6 +8,6 @@
 (function(global) {
 
   var AlphabetJS = global.AlphabetJS;
-  var mHandlers = AlphabetJS.loaders.AS2.handlers;
+  var mHandlers = AlphabetJS.loaders.AS2Decompiler.handlers;
 
 }(this));

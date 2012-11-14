@@ -11,11 +11,30 @@
 
   AlphabetJS.Program = Program;
 
-  function Program() {
-
+  function Program(pFunctionMap) {
+    this.functionMap = pFunctionMap;
+    this.loadedData = [];
   }
 
-  Program.prototype.run = function(pContext) {
+  Program.prototype.load = function(pData) {
+    var tId = this.loadedData.length;
+
+    this.loadedData[tId] = pData;
+
+    return tId;
+  };
+
+  Program.prototype.callMapped = function(pName) {
+    var tMapped = this.functionMap[pName];
+
+    if (typeof tMapped !== 'function') {
+      return;
+    };
+
+    return tMapped.apply(this, Array.prototype.slice.call(arguments, 1));
+  };
+
+  Program.prototype.run = function(pId) {
     // implement this
   };
 

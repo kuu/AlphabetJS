@@ -10,22 +10,32 @@
   var Breader = global.Breader;
   var AlphabetJS = global.AlphabetJS;
 
+  /**
+   * @class
+   * @extends {AlphabetJS.Loader}
+   */
+  var ASLoader = (function(pSuper) {
+    function ASLoader() {
+      pSuper.call(this);
+    }
+
+    ASLoader.prototype = Object.create(pSuper.prototype);
+
+    return ASLoader;
+  })(AlphabetJS.Loader);
+
   AlphabetJS.loaders.AS1Decompiler = ASLoader;
   AlphabetJS.loaders.AS2Decompiler = ASLoader;
 
-  function ASLoader() {
-
-  }
 
   ASLoader.handlers = new Array(256);
 
-  ASLoader.prototype = Object.create(AlphabetJS.Loader.prototype);
-
-  ASLoader.prototype.load = function(pProgram, pActions, pFunctionMap, pVersion) {
+  ASLoader.prototype.load = function(pProgram, pActions, pMetadata) {
     var tReader = new Breader(pActions);
     var tSize = tReader.fileSize;
-    var tFactory = new AlphabetJS.ASTFactory(pFunctionMap);
+    var tFactory = new AlphabetJS.ASTFactory(pProgram.functionMap);
     var tHandlers = ASLoader.handlers;
+    var tVersion = pMetadata.version;
 
     var tActionCode;
     var tActionLength;
@@ -50,7 +60,7 @@
       actionLength: 0,
 
       getBooleanLiteral: function(pResult) {
-        if (pVersion <= 4) {
+        if (tVersion <= 4) {
           return {
             type: 'literal',
             what: 'number',
@@ -93,11 +103,11 @@
       },
 
       toFloat: function(pAST) {
-        return toNumber(pAST, 'Float');
+        return tState.toNumber(pAST, 'Float');
       },
 
       toInt: function(pAST) {
-        return toNumber(pAST, 'Int');
+        return tState.toNumber(pAST, 'Int');
       },
 
       toString: function(pAST) {
@@ -125,24 +135,15 @@
     var tByteToASTMap = tState.byteToASTMap;
     var tByteToASTMapIndicies = tState.byteToASTMapIndicies;
 
-    tFactory.add({
-      type: 'declare',
-      name: 'tTarget',
-      value: {
-        type: 'literal',
-        what: 'this'
-      }
-    });
-
     while ((tByteOffset = tState.byteOffset = tReader.tell()) <= tSize) {
-      tActionCode = pState.actionCode = tReader.B();
+      tActionCode = tState.actionCode = tReader.B();
       tActionLength = 0;
 
       if (tActionCode > 127) {
         tActionLength = tReader.I16();
       }
 
-      pState.actionLength = tActionLength;
+      tState.actionLength = tActionLength;
 
       tCurrentAST = tState.currentAST = void 0;
 
@@ -244,7 +245,7 @@
       }
     }
 
-    pProgram.run = tFactory.getFunction();
+    return pProgram.load(tFactory.getFunction(['pTarget']));
   };
 
 }(this));

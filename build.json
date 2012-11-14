@@ -17,7 +17,6 @@
   "targets": {
     "all": {
       "depends": [
-        "core",
         "AS1Decompiler",
         "ABC"
       ]
@@ -25,6 +24,7 @@
 
     "core": {
       "builder": "closure-compiler",
+      "module": true,
       "resources": [
         {
           "type": "files",
@@ -34,7 +34,17 @@
             "Program.js",
             "Loader.js"
           ]
-        },
+        }
+      ]
+    },
+
+    "AST": {
+      "builder": "closure-compiler",
+      "module": true,
+      "depends": [
+        "core"
+      ],
+      "resources": [
         {
           "type": "files",
           "root": "${sourceDir}/AST",
@@ -43,16 +53,37 @@
       ]
     },
 
+    "ASCore": {
+      "builder": "closure-compiler",
+      "module": true,
+      "depends": [
+        "core"
+      ],
+      "resources": [
+        {
+          "type": "files",
+          "root": "${sourceDir}/ActionScript12",
+          "files": [
+            "ASProgram.js"
+          ]
+        }
+      ]
+    },
+
     "AS1Decompiler": {
       "builder": "closure-compiler",
+      "module": true,
+      "depends": [
+        "ASCore",
+        "AST"
+      ],
       "resources": [
         {
           "type": "files",
           "root": "${sourceDir}/ActionScript12/Decompiler",
           "files": [
-            "AS1Program.js",
-            "AS1Handlers.js",
-            "Loader.js"
+            "Loader.js",
+            "AS1Handlers.js"
           ]
         }
       ]
@@ -60,18 +91,15 @@
 
     "AS2Decompiler": {
       "builder": "closure-compiler",
+      "module": true,
+      "depends": [
+        "AS1Decompiler"
+      ],
       "resources": [
-        {
-          "type": "targets",
-          "targets": [
-            "AS1Decompiler"
-          ]
-        },
         {
           "type": "files",
           "root": "${sourceDir}/ActionScript12/Decompiler",
           "files": [
-            "AS2Program.js",
             "AS2Handlers.js"
           ]
         }
@@ -80,6 +108,7 @@
 
     "ABC": {
       "builder": "closure-compiler",
+      "module": true,
       "resources": [
         {
           "type": "files",
@@ -104,8 +133,7 @@
 
         {
           "type": "output",
-          "include": "\\.js$",
-          "exclude": "breader\\.js$"
+          "include": "\\.js$"
         }
       ]
     }

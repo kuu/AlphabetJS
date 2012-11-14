@@ -14,10 +14,10 @@
     loaders: {}
   };
 
-  function createProgram(pType) {
+  function createProgram(pType, pFunctionMap) {
     var tClass = AlphabetJS.programs[pType];
     if (tClass !== void 0) {
-      return new tClass();
+      return new tClass(pFunctionMap);
     }
     return null;
   }

@@ -10,15 +10,23 @@
   var AlphabetJS = global.AlphabetJS;
   var Breader = global.Breader;
 
-  AlphabetJS.loaders.ABC = Loader;
+  /**
+   * @class
+   * @extends {AlphabetJS.Loader}
+   */
+  var ABCLoader = (function(pSuper) {
+    function ABCLoader() {
+      pSuper.call(this);
+    }
 
-  function Loader() {
+    ABCLoader.prototype = Object.create(pSuper.prototype);
 
-  }
+    return ABCLoader;
+  })(AlphabetJS.Loader);
 
-  Loader.prototype = Object.create(AlphabetJS.Loader.prototype);
+  AlphabetJS.loaders.ABC = ABCLoader;
 
-  Loader.prototype.load = function(pProgram, pABC, pFunctionMap) {
+  ABCLoader.prototype.load = function(pProgram, pABC, pFunctionMap) {
     var mIO = new Breader(pABC);
 
     var tMinor = mIO.I16(), tMajor = mIO.I16();

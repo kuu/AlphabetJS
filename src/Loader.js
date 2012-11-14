@@ -15,8 +15,8 @@
 
   }
 
-  Loader.prototype.load = function(pProgram, pData) {
-    // implement this
+  Loader.prototype.load = function(pProgram, pData, pMetadata) {
+    // Implement this.
   };
 
 }(this));
