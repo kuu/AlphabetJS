@@ -130,7 +130,7 @@
   // GetProperty
   mHandlers[0x22] = function(pActionCode, pActionLength) {
     var tProperty = this.toInt(this.pop());
-    var tName = this.toString(this.pop());
+    var tName = this.toString(this.pop()).toLowerCase();
     this.push(this.callMapped('GetProperty', tName, tProperty));
   };
 
@@ -203,34 +203,84 @@
 
   // CharToAscii
   mHandlers[0x32] = function(pActionCode, pActionLength) {
-    console.warn('CharToAscii');
+    // TODO: Support sjis
+    this.push(this.toString(this.pop()).charCodeAt(0));
   };
 
   // AsciiToChar
   mHandlers[0x33] = function(pActionCode, pActionLength) {
-    console.warn('AsciiToChar');
+    // TODO: Support sjis
+    this.push(String.fromCharCode(this.toInt(this.pop())));
   };
 
   // GetTime
   mHandlers[0x34] = function(pActionCode, pActionLength) {
-    console.warn('GetTime');
+    this.push(Date.now() - this.startTime);
   };
 
-  // StringExtract, MBStringExtract
-  mHandlers[0x15] = mHandlers[0x35] = function(pActionCode, pActionLength) {
+  // StringExtract
+  mHandlers[0x15] = function(pActionCode, pActionLength) {
     var tCount = this.toInt(this.pop());
     var tIndex = this.toInt(this.pop());
-    this.push(this.toString(this.pop()).substr(tIndex - 1));
+    var tString = this.toString(this.pop());
+    var tReturn, tTempIndex, i, il, tCharCode;
+
+    if (typeof tCount !== 'number' || typeof tIndex !== 'number') {
+      this.push('');
+    }
+
+    tReturn = '';
+    tTempIndex = tIndex - 1;
+
+    for (i = 0, il = tString.length; i < il; i++) {
+      tCharCode = tString.charCodeAt(i);
+
+      if (tCharCode > 255) {
+        tTempIndex -= 2;
+      } else {
+        tTempIndex--;
+      }
+
+      if (tTempIndex < 0) {
+        tReturn += tString.substr(i, 1);
+
+        if (tCharCode > 255) {
+          tCount -= 2;
+        } else {
+          tCount--;
+        }
+
+        if (tCount <= 0) {
+          break;
+        }
+      }
+    }
+
+    this.push(tReturn);
+  };
+
+  // MBStringExtract
+  mHandlers[0x35] = function(pActionCode, pActionLength) {
+    var tCount = this.toInt(this.pop());
+    var tIndex = this.toInt(this.pop());
+
+    if (typeof tCount !== 'number' || typeof tIndex !== 'number') {
+      this.push('');
+    }
+
+    this.push(this.toString(this.pop()).substr(tIndex - 1, tCount));
   };
 
   // MBCharToAscii
   mHandlers[0x36] = function(pActionCode, pActionLength) {
-    console.warn('MBCharToAscii');
+    // TODO: Support sjis
+    this.push(this.toString(this.pop()).charCodeAt(0));
   };
 
   // MBAsciiToChar
   mHandlers[0x37] = function(pActionCode, pActionLength) {
-    console.warn('MBAsciiToChar');
+    // TODO: Support sjis
+    this.push(String.fromCharCode(this.toInt(this.pop())));
   };
 
   // GoToFrame
@@ -277,43 +327,44 @@
   mHandlers[0x96] = function(pActionCode, pActionLength) {
     var tPushValue;
     var tReader = this.reader;
+    var tStartIndex = tReader.tell();
 
-    // TODO: Is it possible to have multiple pushes in a single push command?? Until the end of the length
-    switch (tReader.B()) {
-      case 0: // String literal
-        tPushValue = tReader.s();
-        break;
-      case 1: // Floating Point literal
-        tPushValue = tReader.F32();
-        break;
-      case 4: // Register Number
-        tPushValue = tReader.B();
-        break;
-      case 5: // Boolean
-        tPushValue = tReader.B() ? true : false;
-        break;
-      case 6: // Double
-        tPushValue = tReader.F64();
-        break;
-      case 7: // Integer
-        tPushValue = tReader.I32();
-        break;
-      case 8: // Constant8: For constant pool index < 256
-        tPushValue = tReader.B();
-        break;
-      case 9: // Constant16: For constant pool index >= 256
-        tPushValue = tReader.I16();
-        break;
+    while (tReader.tell() - tStartIndex < pActionLength) {
+      switch (tReader.B()) {
+        case 0: // String literal
+          tPushValue = tReader.s();
+          break;
+        case 1: // Floating Point literal
+          tPushValue = tReader.F32();
+          break;
+        case 4: // Register Number
+          tPushValue = tReader.B();
+          break;
+        case 5: // Boolean
+          tPushValue = tReader.B() ? true : false;
+          break;
+        case 6: // Double
+          tPushValue = tReader.F64();
+          break;
+        case 7: // Integer
+          tPushValue = tReader.I32();
+          break;
+        case 8: // Constant8: For constant pool index < 256
+          tPushValue = tReader.B();
+          break;
+        case 9: // Constant16: For constant pool index >= 256
+          tPushValue = tReader.I16();
+          break;
+      }
+
+      this.push(tPushValue);
     }
-
-    this.push(tPushValue);
   };
 
   // Jump
   mHandlers[0x99] = function(pActionCode, pActionLength) {
     var tReader = this.reader;
-    var tOffset = tReader.SI16();
-    tReader.seek(tOffset);
+    tReader.seek(tReader.SI16());
   };
 
    // GetURL2
@@ -325,7 +376,10 @@
     var tLoadVariablesFlag = tReader.bp(1); // LoadVariablesFlag (0 = no variables to load, 1 = load variables)
     tReader.a();
 
-    this.callMapped('GetURL2', tSendVarsMethod, tLoadTargetFlag, tLoadVariablesFlag);
+    var tTarget = this.toString(this.pop());
+    var tURL = this.toString(this.pop());
+
+    this.callMapped('GetURL2', tURL, tTarget, tSendVarsMethod, tLoadTargetFlag, tLoadVariablesFlag);
   };
 
   // If
@@ -334,7 +388,7 @@
     var tOffset = tReader.SI16();
     var tCondition = this.pop();
 
-    if (!tCondition) {
+    if (tCondition) {
       tReader.seek(tOffset);
     }
   };

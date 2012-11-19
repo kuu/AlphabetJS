@@ -41,12 +41,7 @@
   ASProgram.handlers = new Array(256);
 
   ASProgram.prototype.reset = function() {
-    this.target = null;
-    this.targetStack = [];
-    this.reader = null;
-    this.version = 0;
-    this.stack = [];
-    this.stackIndex = 0;
+    this.resetState();
     this.stateStack = [];
     this.runCounter = 0;
   };
@@ -60,15 +55,60 @@
   }
 
   ASProgram.prototype.toFloat = function(pValue) {
+    if (typeof pValue === 'number') {
+      return pValue;
+    } else if (typeof pValue === 'boolean') {
+      return pValue ? 1 : 0;
+    }
     return parseFloat(pValue, 10) || 0;
   };
 
   ASProgram.prototype.toInt = function(pValue) {
+    if (typeof pValue === 'number') {
+      return pValue;
+    } else if (typeof pValue === 'boolean') {
+      return pValue ? 1 : 0;
+    }
     return parseInt(pValue, 10) || 0;
   };
 
   ASProgram.prototype.toString = function(pValue) {
-    return pValue || '';
+    if (typeof pValue === 'string') {
+      return pValue;
+    } else if (typeof pValue === 'number') {
+      return pValue + '';
+    }
+    return '';
+  };
+
+  ASProgram.prototype.resetState = function() {
+    this.target = null;
+    this.targetStack = [];
+    this.reader = null;
+    this.version = 0;
+    this.stack = [];
+    this.stackIndex = 0;
+  }
+
+  ASProgram.prototype.pushState = function() {
+    this.stateStack.push({
+      target: this.target,
+      targetStack : this.targetStack,
+      reader: this.reader,
+      version: this.version,
+      stack: this.stack,
+      stackIndex: this.stackIndex
+    });
+  };
+
+  ASProgram.prototype.popState = function() {
+    var tState = this.stateStack.pop();
+    this.target = tState.target;
+    this.targetStack = tState.targetStack;
+    this.reader = tState.reader;
+    this.version = tState.version;
+    this.stack = tState.stack;
+    this.stackIndex = tState.stackIndex;
   };
 
   ASProgram.prototype.run = function(pId, pTarget) {
@@ -78,9 +118,11 @@
       return;
     }
 
-    if (this.runCounter++ === 0) {
-      this.target = pTarget;
+    if (this.runCounter++ !== 0) {
+      this.pushState();
     }
+
+    this.target = pTarget;
 
     var tActions = tASData.actions;
     var tVersion = this.version = tASData.version;
@@ -118,6 +160,8 @@
 
     if (--this.runCounter === 0) {
       this.reset();
+    } else {
+      this.popState();
     }
   };
 

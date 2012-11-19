@@ -14,6 +14,7 @@
   function Program(pFunctionMap) {
     this.functionMap = pFunctionMap;
     this.loadedData = [];
+    this.startTime = Date.now();
   }
 
   Program.prototype.load = function(pData) {
