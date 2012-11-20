@@ -65,7 +65,7 @@
   // Divide
   mHandlers[0x0D] = function(pActionCode, pActionLength) {
     var tRight = this.toFloat(this.pop());
-    this.push(tRight / this.toFloat(this.pop()));
+    this.push(this.toFloat(this.pop()) / tRight);
   };
 
   // Equals
@@ -124,7 +124,7 @@
   // StringAdd
   mHandlers[0x21] = function(pActionCode, pActionLength) {
     var tRight = this.toString(this.pop());
-    this.push(tRight + this.toString(this.pop()));
+    this.push(this.toString(this.pop()) + tRight);
   };
 
   // GetProperty
@@ -139,20 +139,20 @@
     var tValue = this.pop();
     var tProperty = this.toInt(this.pop());
     var tName = this.toString(this.pop());
-    this.push(this.callMapped('SetProperty', tName, tProperty, tValue));
+    this.callMapped('SetProperty', tName, tProperty, tValue);
   };
 
   // CloneSprite
   mHandlers[0x24] = function(pActionCode, pActionLength) {
     var tDepth = this.toInt(this.pop());
-    var tTarget = this.toString(this.pop());
-    var tName = this.toString(this.pop());
+    var tTarget = this.toString(this.pop()).toLowerCase();
+    var tName = this.toString(this.pop()).toLowerCase();
     this.callMapped('CloneSprite', tTarget, tDepth, tName);
   };
 
   // RemoveSprite
   mHandlers[0x25] = function(pActionCode, pActionLength) {
-    var tName = this.toString(this.pop());
+    var tName = this.toString(this.pop()).toLowerCase();
     this.callMapped('RemoveSprite', tName);
   };
 

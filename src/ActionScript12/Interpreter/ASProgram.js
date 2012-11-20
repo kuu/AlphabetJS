@@ -120,6 +120,7 @@
 
     if (this.runCounter++ !== 0) {
       this.pushState();
+      this.resetState();
     }
 
     this.target = pTarget;
