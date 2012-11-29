@@ -166,13 +166,28 @@
     }
   };
 
+  ASProgram.prototype.getLastValidTarget = function() {
+    if (this.target !== null) {
+      return this.target;
+    } else {
+      var tTargetStack = this.targetStack;
+      for (var i = tTargetStack.length - 1; i >= 0; i--) {
+        if (tTargetStack[i] !== null) {
+          return tTargetStack[i];
+        }
+      }
+
+      return null;
+    }
+  }
+
   ASProgram.prototype.setTarget = function(pSelector) {
     if (!pSelector) {
       if (this.targetStack.length > 0) {
         this.target = this.targetStack.pop();
       }
     } else {
-      var tNewTarget = this.functionMap.GetTargetAndData.call(this, pSelector).target;
+      var tNewTarget = this.functionMap.GetTargetAndData.call(this, pSelector, this.target).target;
       this.targetStack.push(this.target);
       this.target = tNewTarget;
     }

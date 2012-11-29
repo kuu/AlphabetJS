@@ -20,11 +20,13 @@
   // NextFrame
   mHandlers[0x04] = function(pActionCode, pActionLength) {
     this.callMapped('NextFrame');
+    this.callMapped('Stop');
   };
 
   // PreviousFrame
   mHandlers[0x05] = function(pActionCode, pActionLength) {
     this.callMapped('PreviousFrame');
+    this.callMapped('Stop');
   };
 
   // Play
@@ -286,6 +288,7 @@
   // GoToFrame
   mHandlers[0x81] = function(pActionCode, pActionLength) {
     this.callMapped('GoToFrame', this.reader.I16());
+    this.callMapped('Play');
   };
 
   // GetURL
@@ -315,6 +318,7 @@
   // GoToLabel
   mHandlers[0x8C] = function(pActionCode, pActionLength) {
     this.callMapped('GoToLabel', this.reader.s());
+    this.callMapped('Play');
   };
 
   // WaitForFrame2
