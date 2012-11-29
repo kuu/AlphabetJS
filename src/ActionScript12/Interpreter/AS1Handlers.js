@@ -399,7 +399,7 @@
 
   // Call
   mHandlers[0x9E] = function(pActionCode, pActionLength) {
-    this.callMapped('Call', this.pop());
+    this.callMapped('Call', this.toString(this.pop()));
   };
 
   // GoToFrame2
