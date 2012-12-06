@@ -41,13 +41,12 @@
     var tActionLength;
     var tActionHandler;
 
-    var tCurrentAST;
+    var tASTAdded;
 
     var tState = {
       startPointer: tReader.tell(),
       byteToASTMap: new Array(tSize),
       byteToASTMapIndicies: [],
-      currentAST: void 0,
       byteOffset: 0,
       ifTarget: -1,
       ifTargetStack: [],
@@ -86,12 +85,12 @@
               value: 'parse' + pType
             },
             args: [
-            pAST,
-            {
-              type: 'literal',
-              what: 'number',
-              value: 10
-            }
+              pAST,
+              {
+                type: 'literal',
+                what: 'number',
+                value: 10
+              }
             ]
           },
           right: {
@@ -110,8 +109,8 @@
         return tState.toNumber(pAST, 'Int');
       },
 
-      toString: function(pAST) {
-        return {
+      toString: function(pAST, pToLowerCase) {
+        var tAST = {
           type: 'or',
           left: pAST,
           right: {
@@ -120,6 +119,44 @@
             value: ''
           }
         };
+
+        if (pToLowerCase === true) {
+          tAST = {
+            type: 'call',
+            value: {
+              type: 'property',
+              left: tAST,
+              right: {
+                type: 'literal',
+                what: 'string',
+                value: 'toLowerCase'
+              }
+            }
+          }
+        }
+
+        return tAST;
+      },
+
+      add: function(pAST) {
+        var tTempInt;
+        for (var i = 0, il = tTempStackByteOffsets.length; i < il; i++) {
+          tTempInt = tTempStackByteOffsets[i];
+          tByteToASTMap[tTempInt] = {
+            ast: pAST,
+            index: tByteToASTMapIndicies.push(tTempInt) - 1
+          };
+        }
+        tTempStackByteOffsets.length = 0;
+
+        tByteToASTMap[tByteOffset] = {
+          ast: pAST,
+          index: tByteToASTMapIndicies.push(tByteOffset) - 1
+        };
+
+        tFactory.add(pAST);
+
+        tASTAdded = true;
       }
     };
 
@@ -145,7 +182,7 @@
 
       tState.actionLength = tActionLength;
 
-      tCurrentAST = tState.currentAST = void 0;
+      tASTAdded = false;
 
       if (tState.byteOffset - tState.startPointer === tState.ifTarget) {
         tState.ifTarget = tState.ifTargetStack.pop();
@@ -160,32 +197,15 @@
         } else if (tResult === false) {
           break;
         }
-        tCurrentAST = tState.currentAST;
       } else {
         console.warn('Unknown action code ' + tActionCode);
-        tState.currentAST = {
+        tState.add({
           type: 'comment',
           value: 'Unknown tag ' + tActionCode + ' here!'
-        };
+        });
       }
 
-      if (tCurrentAST !== void 0) {
-        for (i = 0, il = tTempStackByteOffsets.length; i < il; i++) {
-          tTempInt = tTempStackByteOffsets[i];
-          tByteToASTMap[tTempInt] = {
-            ast: tCurrentAST,
-            index: tByteToASTMapIndicies.push(tTempInt) - 1
-          };
-        }
-        tTempStackByteOffsets.length = 0;
-
-        tByteToASTMap[tByteOffset] = {
-          ast: tCurrentAST,
-          index: tByteToASTMapIndicies.push(tByteOffset) - 1
-        };
-
-        tFactory.add(tCurrentAST);
-      } else {
+      if (tASTAdded === false) {
         tTempStackByteOffsets.push(tByteOffset);
       }
     }

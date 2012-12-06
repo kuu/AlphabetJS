@@ -18,7 +18,7 @@
     var i = 0, il;
     var tTempInt = 0;
 
-    var tCurrentAST = pState.currentAST = pFactory.astPointer[pFactory.astPointer.length - 1];
+    var tCurrentAST = pFactory.astPointer[pFactory.astPointer.length - 1];
 
     for (il = tTempStackByteOffsets.length; i < il; i++) {
       tTempInt = tTempStackByteOffsets[i];
@@ -39,32 +39,34 @@
 
   // NextFrame
   mHandlers[0x04] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('NextFrame');
+    pState.add(pFactory.createMapped('NextFrame'));
+    pState.add(pFactory.createMapped('Stop'));
   };
 
   // PreviousFrame
   mHandlers[0x05] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('PreviousFrame');
+    pState.add(pFactory.createMapped('PreviousFrame'));
+    pState.add(pFactory.createMapped('Stop'));
   };
 
   // Play
   mHandlers[0x06] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('Play');
+    pState.add(pFactory.createMapped('Play'));
   };
 
   // Stop
   mHandlers[0x07] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('Stop');
+    pState.add(pFactory.createMapped('Stop'));
   };
 
   // ToggleQuality
   mHandlers[0x08] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('ToggleQuality');
+    pState.add(pFactory.createMapped('ToggleQuality'));
   };
 
   // StopSounds
   mHandlers[0x09] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('StopSounds');
+    pState.add(pFactory.createMapped('StopSounds'));
   };
 
   // Add
@@ -206,7 +208,7 @@
 
   // Pop
   mHandlers[0x17] = function(pReader, pFactory, pState) {
-    pState.currentAST = pState.tempStack[pState.tempStackIndex--];
+    pState.add(pState.tempStack[pState.tempStackIndex--]);
   };
 
   // ToInteger
@@ -232,7 +234,7 @@
     var tTempStackIndex = pState.tempStackIndex;
 
     tTempStack[tTempStackIndex] = pFactory.createMapped('GetVariable', [
-      tTempStack[tTempStackIndex] //name
+      pState.toString(tTempStack[tTempStackIndex]) //name
     ]);
   };
 
@@ -242,12 +244,12 @@
     var tTempStackIndex = pState.tempStackIndex;
 
     var tValue = tTempStack[tTempStackIndex--];
-    var tName = tTempStack[tTempStackIndex--];
+    var tName = pState.toString(tTempStack[tTempStackIndex--]);
 
-    pState.currentAST = pFactory.createMapped('SetVariable', [
+    pState.add(pFactory.createMapped('SetVariable', [
       tName,
       tValue
-    ]);
+    ]));
 
     pState.tempStackIndex = tTempStackIndex;
   };
@@ -272,7 +274,7 @@
     var tTempStackIndex = pState.tempStackIndex;
 
     var tProperty = pState.toInt(tTempStack[tTempStackIndex--]);
-    var tName = pState.toString(tTempStack[tTempStackIndex--]);
+    var tName = pState.toString(tTempStack[tTempStackIndex--], true);
 
     tTempStack[tTempStackIndex - 1] = pFactory.createMapped('GetProperty', [
       tName,
@@ -289,13 +291,13 @@
 
     var tValue = tTempStack[tTempStackIndex--];
     var tProperty = pState.toInt(tTempStack[tTempStackIndex--]);
-    var tName = pState.toString(tTempStack[tTempStackIndex]);
+    var tName = pState.toString(tTempStack[tTempStackIndex], true);
 
-    pState.currentAST = pFactory.createMapped('SetProperty', [
+    pState.add(pFactory.createMapped('SetProperty', [
       tName,
       tProperty,
       tValue
-    ]);
+    ]));
 
     pState.tempStackIndex = tTempStackIndex;
   };
@@ -306,40 +308,40 @@
     var tTempStackIndex = pState.tempStackIndex;
 
     var tDepth = pState.toInt(tTempStack[tTempStackIndex--]);
-    var tTarget = pState.toString(tTempStack[tTempStackIndex--]);
-    var tName = pState.toString(tTempStack[tTempStackIndex--]);
+    var tTarget = pState.toString(tTempStack[tTempStackIndex--], true);
+    var tName = pState.toString(tTempStack[tTempStackIndex--], true);
 
-    pState.currentAST = pFactory.createMapped('CloneSprite', [
+    pState.add(pFactory.createMapped('CloneSprite', [
       tTarget,
       tDepth,
       tName
-    ]);
+    ]));
 
     pState.tempStackIndex = tTempStackIndex;
   };
 
   // RemoveSprite
   mHandlers[0x25] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('RemoveSprite', [
-      pState.toString(pState.tempStack[pState.tempStackIndex--]) //name
-    ]);
+    pState.add(pFactory.createMapped('RemoveSprite', [
+      pState.toString(pState.tempStack[pState.tempStackIndex--], true) //name
+    ]));
   };
 
   // Trace
   mHandlers[0x26] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('Trace', [
+    pState.add(pFactory.createMapped('Trace', [
       pState.tempStack[pState.tempStackIndex--]
-    ]);
+    ]));
   };
 
   // StartDrag
   mHandlers[0x27] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('StartDrag');
+    pState.add(pFactory.createMapped('StartDrag'));
   };
 
   // EndDrag
   mHandlers[0x28] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('EndDrag');
+    pState.add(pFactory.createMapped('EndDrag'));
   };
 
   // StringLess
@@ -415,25 +417,25 @@
 
   // CharToAscii
   mHandlers[0x32] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented CharToAscii here!'
-    };
+    var tTempStack = pState.tempStack;
+    var tTempStackIndex = pState.tempStackIndex;
+
+    console.warn('Unimplemented CharToAscii');
   };
 
   // AsciiToChar
   mHandlers[0x33] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented AsciiToChar here!'
-    };
+    var tTempStack = pState.tempStack;
+    var tTempStackIndex = pState.tempStackIndex;
+
+    console.warn('Unimplemented AsciiToChar');
   };
 
   // GetTime
   mHandlers[0x34] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented GetTime here!'
+    pState.tempStack[++pState.tempStackIndex] = {
+      type: 'raw',
+      value: '(Date.now() - ' + Date.now() + ')'
     };
   };
 
@@ -474,34 +476,30 @@
 
   // MBCharToAscii
   mHandlers[0x36] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented MBCharToAscii here!'
-    };
+    console.warn('Unimplemented MBCharToAscii');
   };
 
   // MBAsciiToChar
   mHandlers[0x37] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
-      type: 'comment',
-      value: 'Unimplemented MBAsciiToChar here!'
-    };
+    console.warn('Unimplemented MBAsciiToChar');
   };
 
   // GoToFrame
   mHandlers[0x81] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('GoToFrame', [
+    pState.add(pFactory.createMapped('GoToFrame', [
       {
         type: 'literal',
         what: 'number',
         value: pReader.I16()
       }
-    ]);
+    ]));
+
+    pState.add(pFactory.createMapped('Stop'));
   };
 
   // GetURL
   mHandlers[0x83] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('GetURL', [
+    pState.add(pFactory.createMapped('GetURL', [
       {
         type: 'literal',
         what: 'string',
@@ -512,12 +510,12 @@
         what: 'string',
         value: pReader.s() // TargetString: The target string. _level0 and _level1 loads SWF files to special area.
       }
-    ]);
+    ]));
   };
 
   // WaitForFrame
   mHandlers[0x8A] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('WaitForFrame', [
+    pState.add(pFactory.createMapped('WaitForFrame', [
       {
         type: 'literal',
         what: 'number',
@@ -528,12 +526,12 @@
         what: 'number',
         value: pReader.B() // SkipCount: The number of actions to skip if frame is not loaded.
       }
-    ]);
+    ]));
   };
 
   // SetTarget, SetTarget2
   mHandlers[0x8B] = mHandlers[0x20] = function(pReader, pFactory, pState) {
-    pState.currentAST = {
+    pState.add({
       type: 'call',
       value: {
         type: 'property',
@@ -554,79 +552,84 @@
             what: 'string',
             value: pReader.s()
           } :
-          pState.toString(pState.tempStack[pState.tempStackIndex--])
+          pState.toString(pState.tempStack[pState.tempStackIndex--], true)
       ]
-    };
+    });
   };
 
   // GoToLabel
   mHandlers[0x8C] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('GoToLabel', [
+    pState.add(pFactory.createMapped('GoToLabel', [
       {
         type: 'literal',
         what: 'string',
         value: pReader.s()
       }
-    ]);
+    ]));
+
+    pState.add(pFactory.createMapped('Stop'));
   };
 
   // WaitForFrame2
   mHandlers[0x8D] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('WaitForFrame2', [
+    pState.add(pFactory.createMapped('WaitForFrame2', [
       {
         type: 'literal',
         what: 'number',
         value: pReader.B() // SkipCount: The number of actions to skip if frame is not loaded.
       }
-    ]);
+    ]));
   };
 
   // Push
   mHandlers[0x96] = function(pReader, pFactory, pState) {
     var tPushValue;
     var tPushWhat;
+    var tStartIndex = pReader.tell();
+    var tActionLength = pState.actionLength;
 
-    // TODO: Is it possible to have multiple pushes in a single push command?? Until the end of the length
-    switch (pReader.B()) {
-      case 0: // String literal
-        tPushValue = pReader.s();
-        tPushWhat = 'string';
-        break;
-      case 1: // Floating Point literal
-        tPushValue = pReader.F32();
-        tPushWhat = 'number';
-        break;
-      case 4: // Register Number
-        tPushValue = pReader.B();
-        tPushWhat = 'number';
-        break;
-      case 5: // Boolean
-        tPushValue = pReader.B() ? true : false;
-        tPushWhat = 'boolean';
-        break;
-      case 6: // Double
-        tPushValue = pReader.F64();
-        tPushWhat = 'number';
-        break;
-      case 7: // Integer
-        tPushValue = pReader.I32();
-        tPushWhat = 'number';
-        break;
-      case 8: // Constant8: For constant pool index < 256
-        tPushValue = pReader.B();
-        tPushWhat = 'number';
-        break;
-      case 9: // Constant16: For constant pool index >= 256
-        tPushValue = pReader.I16();
-        tPushWhat = 'number';
-        break;
+    while (pReader.tell() - tStartIndex < tActionLength) {
+      switch (pReader.B()) {
+        case 0: // String literal
+          tPushValue = pReader.s();
+          tPushWhat = 'string';
+          break;
+        case 1: // Floating Point literal
+          tPushValue = pReader.F32();
+          tPushWhat = 'number';
+          break;
+        case 4: // Register Number
+          tPushValue = pReader.B();
+          tPushWhat = 'number';
+          break;
+        case 5: // Boolean
+          tPushValue = pReader.B() ? true : false;
+          tPushWhat = 'boolean';
+          break;
+        case 6: // Double
+          tPushValue = pReader.F64();
+          tPushWhat = 'number';
+          break;
+        case 7: // Integer
+          tPushValue = pReader.I32();
+          tPushWhat = 'number';
+          break;
+        case 8: // Constant8: For constant pool index < 256
+          tPushValue = pReader.B();
+          tPushWhat = 'number';
+          break;
+        case 9: // Constant16: For constant pool index >= 256
+          tPushValue = pReader.I16();
+          tPushWhat = 'number';
+          break;
+      }
+
+      pState.tempStack[++pState.tempStackIndex] = {
+        type: 'literal',
+        what: tPushWhat,
+        value: tPushValue
+      };
     }
-
-    pState.tempStack[++pState.tempStackIndex] = {
-      type: 'literal',
-      what: tPushWhat,
-      value: tPushValue
-    };
   };
 
   // Jump
@@ -637,13 +640,21 @@
 
    // GetURL2
   mHandlers[0x9A] = function(pReader, pFactory, pState) {
+    var tTempStack = pState.tempStack;
+    var tTempStackIndex = pState.tempStackIndex;
+
     var tSendVarsMethod = pReader.bp(2); // SendVarsMethod (0 = none, 1 = GET, 2 = POST)
     pReader.bp(4); // Reserved
     var tLoadTargetFlag = pReader.bp(1); // LoadTargetFlag (0 = target is a browser window, 1 = target is a path to sprite)
     var tLoadVariablesFlag = pReader.bp(1); // LoadVariablesFlag (0 = no variables to load, 1 = load variables)
     pReader.a();
 
-    pState.currentAST = pFactory.createMapped('GetURL2', [
+    var tTarget = pState.toString(tTempStack[tTempStackIndex--]);
+    var tURL = pState.toString(tTempStack[tTempStackIndex--]);
+
+    pState.add(pFactory.createMapped('GetURL2', [
+      tTarget,
+      tURL,
       {
         type: 'literal',
         what: 'number',
@@ -659,7 +670,9 @@
         what: 'number',
         value: tLoadVariablesFlag
       }
-    ]);
+    ]));
+
+    pState.tempStackIndex = tTempStackIndex;
   };
 
   // If
@@ -716,9 +729,9 @@
 
   // Call
   mHandlers[0x9E] = function(pReader, pFactory, pState) {
-    pState.currentAST = pFactory.createMapped('Call', [
-      pState.tempStack[pState.tempStackIndex--] //name
-    ]);
+    pState.add(pFactory.createMapped('Call', [
+      pState.toString(pState.tempStack[pState.tempStackIndex--]) //name
+    ]));
   };
 
   // GoToFrame2
@@ -735,7 +748,7 @@
       tSceneBias = pReader.I16(); // SceneBias (Number to be added to frame determined by stack argument)
     }
 
-    pState.currentAST = pFactory.createMapped('GoToFrame2', [
+    pState.add(pFactory.createMapped('GoToFrame2', [
       pState.tempStack[pState.tempStackIndex--], //frame or label
       {
         type: 'literal',
@@ -747,7 +760,7 @@
         what: 'number',
         value: tPlayFlag
       }
-    ]);
+    ]));
   };
 
 }(this));

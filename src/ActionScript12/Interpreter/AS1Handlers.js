@@ -140,7 +140,7 @@
   mHandlers[0x23] = function(pActionCode, pActionLength) {
     var tValue = this.pop();
     var tProperty = this.toInt(this.pop());
-    var tName = this.toString(this.pop());
+    var tName = this.toString(this.pop()).toLowerCase();
     this.callMapped('SetProperty', tName, tProperty, tValue);
   };
 
@@ -288,7 +288,7 @@
   // GoToFrame
   mHandlers[0x81] = function(pActionCode, pActionLength) {
     this.callMapped('GoToFrame', this.reader.I16());
-    this.callMapped('Play');
+    this.callMapped('Stop');
   };
 
   // GetURL
@@ -312,13 +312,13 @@
 
   // SetTarget2
   mHandlers[0x20] = function(pActionCode, pActionLength) {
-    this.setTarget(this.toString(this.pop()));
+    this.setTarget(this.toString(this.pop()).toLowerCase());
   };
 
   // GoToLabel
   mHandlers[0x8C] = function(pActionCode, pActionLength) {
     this.callMapped('GoToLabel', this.reader.s());
-    this.callMapped('Play');
+    this.callMapped('Stop');
   };
 
   // WaitForFrame2

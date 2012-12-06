@@ -179,7 +179,7 @@
 
       return null;
     }
-  }
+  };
 
   ASProgram.prototype.setTarget = function(pSelector) {
     if (!pSelector) {
