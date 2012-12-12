@@ -359,6 +359,9 @@
         case 9: // Constant16: For constant pool index >= 256
           tPushValue = tReader.I16();
           break;
+        case 255: // 255 is internally used for asynchronously decoded string literals.
+          tPushValue = this.callMapped('GetPushString', tReader.I16());
+          break;
       }
 
       this.push(tPushValue);

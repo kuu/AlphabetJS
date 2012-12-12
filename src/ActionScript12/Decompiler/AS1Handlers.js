@@ -622,6 +622,11 @@
           tPushValue = pReader.I16();
           tPushWhat = 'number';
           break;
+        case 255: // 255 is internally used for asynchronously decoded string literals.
+          pState.tempStack[++pState.tempStackIndex] = pFactory.createMapped('GetPushString', [
+            pState.toString(tReader.I16())
+          ]);
+          continue;
       }
 
       pState.tempStack[++pState.tempStackIndex] = {
