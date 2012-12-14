@@ -332,9 +332,11 @@
     var tPushValue;
     var tReader = this.reader;
     var tStartIndex = tReader.tell();
+    var tType;
 
     while (tReader.tell() - tStartIndex < pActionLength) {
-      switch (tReader.B()) {
+      tType = tReader.B();
+      switch (tType) {
         case 0: // String literal
           tPushValue = tReader.s();
           break;
@@ -358,6 +360,9 @@
           break;
         case 9: // Constant16: For constant pool index >= 256
           tPushValue = tReader.I16();
+          break;
+        default: // Others are treated as platform specific types.
+          tPushValue = this.callMapped('GetLiteral', tType, tReader);
           break;
       }
 
