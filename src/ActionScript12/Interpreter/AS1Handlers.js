@@ -379,10 +379,10 @@
    // GetURL2
   mHandlers[0x9A] = function(pActionCode, pActionLength) {
     var tReader = this.reader;
-    var tSendVarsMethod = tReader.bp(2); // SendVarsMethod (0 = none, 1 = GET, 2 = POST)
-    tReader.bp(4); // Reserved
-    var tLoadTargetFlag = tReader.bp(1); // LoadTargetFlag (0 = target is a browser window, 1 = target is a path to sprite)
     var tLoadVariablesFlag = tReader.bp(1); // LoadVariablesFlag (0 = no variables to load, 1 = load variables)
+    var tLoadTargetFlag = tReader.bp(1); // LoadTargetFlag (0 = target is a browser window, 1 = target is a path to sprite)
+    tReader.bp(4); // Reserved
+    var tSendVarsMethod = tReader.bp(2); // SendVarsMethod (0 = none, 1 = GET, 2 = POST)
     tReader.a();
 
     var tTarget = this.toString(this.pop());
