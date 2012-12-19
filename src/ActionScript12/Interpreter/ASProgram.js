@@ -28,6 +28,7 @@
       this.stackIndex = 0;
       this.stateStack = [];
       this.runCounter = 0;
+      this.literalTables = {};
     }
 
     ASProgram.prototype = Object.create(pSuper.prototype);
