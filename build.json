@@ -23,7 +23,7 @@
     },
 
     "core": {
-      "builder": "closure-compiler",
+      "builder": "js",
       "module": true,
       "resources": [
         {
@@ -39,7 +39,7 @@
     },
 
     "AST": {
-      "builder": "closure-compiler",
+      "builder": "js",
       "module": true,
       "depends": [
         "core"
@@ -54,7 +54,7 @@
     },
 
     "AS1Decompiler": {
-      "builder": "closure-compiler",
+      "builder": "js",
       "module": true,
       "depends": [
         "AST"
@@ -73,7 +73,7 @@
     },
 
     "AS2Decompiler": {
-      "builder": "closure-compiler",
+      "builder": "js",
       "module": true,
       "depends": [
         "AS1Decompiler"
@@ -90,7 +90,7 @@
     },
 
     "AS1VM": {
-      "builder": "closure-compiler",
+      "builder": "js",
       "module": true,
       "depends": [
         "core"
@@ -109,7 +109,7 @@
     },
 
     "AS2VM": {
-      "builder": "closure-compiler",
+      "builder": "js",
       "module": true,
       "depends": [
         "AS1VM"
@@ -126,7 +126,7 @@
     },
 
     "ABC": {
-      "builder": "closure-compiler",
+      "builder": "js",
       "module": true,
       "resources": [
         {
@@ -142,7 +142,7 @@
     },
 
     ".+": {
-      "builder": "closure-compiler",
+      "builder": "js",
       "outputs": "${binDir}/alphabet.js",
       "resources": [
         {
