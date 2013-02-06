@@ -244,16 +244,16 @@
       }
 
       if (tTempIndex < 0) {
+        if (tCount <= 0) {
+          break;
+        }
+
         tReturn += tString.substr(i, 1);
 
         if (tCharCode > 255) {
           tCount -= 2;
         } else {
           tCount--;
-        }
-
-        if (tCount <= 0) {
-          break;
         }
       }
     }
