@@ -67,7 +67,12 @@
   // Divide
   mHandlers[0x0D] = function(pActionCode, pActionLength) {
     var tRight = this.toFloat(this.pop());
-    this.push(this.toFloat(this.pop()) / tRight);
+    if (tRight === 0) {
+      this.pop();
+      this.push('#ERROR#');
+    } else {
+      this.push(this.toFloat(this.pop()) / tRight);
+    }
   };
 
   // Equals
