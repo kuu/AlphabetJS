@@ -113,7 +113,7 @@
 
   // ToInteger
   mHandlers[0x18] = function(pActionCode, pActionLength) {
-    this.push(Math.floor(this.pop()));
+    this.push(parseInt(this.pop()) || 0);
   };
 
   // GetVariable
